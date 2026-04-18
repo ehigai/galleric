@@ -1,0 +1,121 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "./generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  // Galleries created by this user
+  ownedGalleries Gallery[] @relation("GalleryOwner")
+
+  // Images uploaded by this user (across any gallery)
+  uploadedImages Image[] @relation("ImageUploader")
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model Gallery {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique // The "URL" part (e.g., /@summer-vibe-2024)
+  description String?
+
+  // Settings for the "sounds bad" part
+  isPublic        Boolean @default(true) // Can people find it?
+  allowContribute Boolean @default(true) // Can others upload?
+
+  ownerId String
+  owner   User   @relation("GalleryOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  images Image[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Image {
+  id String @id @default(cuid())
+
+  // Cloudinary Data
+  publicId    String  @unique // The public_id from Cloudinary for deletion
+  url         String // The secure_url from Cloudinary
+  blurDataUrl String?
+  width       Int?
+  height      Int?
+
+  galleryId String
+  gallery   Gallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+  isCover   Boolean @default(false)
+
+  uploaderId String
+  uploader   User   @relation("ImageUploader", fields: [uploaderId], references: [id])
+
+  createdAt DateTime @default(now())
+}
