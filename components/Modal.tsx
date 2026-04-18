@@ -1,57 +1,73 @@
+"use client";
+
 import { Dialog } from "@headlessui/react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/router";
-import { useRef, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { useRef, useState, useEffect } from "react";
 import useKeypress from "react-use-keypress";
-import type { ImageProps } from "../utils/types";
 import SharedModal from "./SharedModal";
+import { ImageProps } from "@/types/type";
+
+import { getPhotoBackUrl, clearPhotoBackUrl } from "./GalleryImageLink";
 
 export default function Modal({
   images,
   onClose,
+  gallerySlug,
 }: {
   images: ImageProps[];
   onClose?: () => void;
+  gallerySlug: string;
 }) {
-  let overlayRef = useRef();
+  let overlayRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
-  const { photoId } = router.query;
-  let index = Number(photoId);
-
+  const initialPhotoId = pathname.split("/").pop() || "";
+  const [activePhotoId, setActivePhotoId] = useState(initialPhotoId);
   const [direction, setDirection] = useState(0);
-  const [curIndex, setCurIndex] = useState(index);
+
+  // Keep state synced if the user navigates using browser Back/Forward buttons
+  useEffect(() => {
+    const currentUrlId = pathname.split("/").pop() || "";
+    if (currentUrlId && currentUrlId !== activePhotoId) {
+      setActivePhotoId(currentUrlId);
+    }
+  }, [pathname]);
+
+  const activeIndex = images.findIndex((img) => img.id === activePhotoId);
+  const safeIndex = activeIndex > -1 ? activeIndex : 0;
 
   function handleClose() {
-    router.push("/", undefined, { shallow: true });
-    onClose();
+    const backUrl = getPhotoBackUrl() ?? `/@${gallerySlug}`;
+    clearPhotoBackUrl();
+    router.push(backUrl, { scroll: false });
+    onClose?.();
   }
 
-  function changePhotoId(newVal: number) {
-    if (newVal > index) {
+  function changePhotoId(newPhotoId: string) {
+    const newIndex = images.findIndex((img) => img.id === newPhotoId);
+
+    if (newIndex > safeIndex) {
       setDirection(1);
     } else {
       setDirection(-1);
     }
-    setCurIndex(newVal);
-    router.push(
-      {
-        query: { photoId: newVal },
-      },
-      `/p/${newVal}`,
-      { shallow: true },
-    );
+
+    // Update UI instantly
+    setActivePhotoId(newPhotoId);
+    window.history.pushState(null, "", `/@${gallerySlug}/p/${newPhotoId}`);
   }
 
   useKeypress("ArrowRight", () => {
-    if (index + 1 < images.length) {
-      changePhotoId(index + 1);
+    if (safeIndex + 1 < images.length) {
+      changePhotoId(images[safeIndex + 1].id);
     }
   });
 
   useKeypress("ArrowLeft", () => {
-    if (index > 0) {
-      changePhotoId(index - 1);
+    if (safeIndex > 0) {
+      changePhotoId(images[safeIndex - 1].id);
     }
   });
 
@@ -65,14 +81,14 @@ export default function Modal({
     >
       <Dialog.Overlay
         ref={overlayRef}
-        as={motion.div}
+        as={motion.div as any}
         key="backdrop"
         className="fixed inset-0 z-30 bg-black/70 backdrop-blur-2xl"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       />
       <SharedModal
-        index={curIndex}
+        index={safeIndex}
         direction={direction}
         images={images}
         changePhotoId={changePhotoId}

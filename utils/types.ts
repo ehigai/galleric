@@ -1,18 +1,10 @@
-/* eslint-disable no-unused-vars */
-export interface ImageProps {
-  id: number;
-  height: string;
-  width: string;
-  public_id: string;
-  format: string;
-  blurDataUrl?: string;
-}
+import { Image } from "@/prisma/generated/prisma/client";
 
 export interface SharedModalProps {
   index: number;
-  images?: ImageProps[];
-  currentPhoto?: ImageProps;
-  changePhotoId: (newVal: number) => void;
+  images?: Image[] | [];
+  currentPhoto?: Image;
+  changePhotoId: (newVal: string) => void;
   closeModal: () => void;
   navigation: boolean;
   direction?: number;
