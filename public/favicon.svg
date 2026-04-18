@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 26">
+  <style>
+    /* Default to black for light mode */
+    .icon { color: #000000; }
+    
+    /* Automatically switch to white for dark mode systems */
+    @media (prefers-color-scheme: dark) {
+      .icon { color: #ffffff; }
+    }
+  </style>
+
+  <g class="icon" fill="none">
+    <rect
+      x="4"
+      y="4"
+      width="18"
+      height="18"
+      rx="2"
+      stroke="currentColor"
+      stroke-width="1.8"
+      opacity="0.25"
+      transform="rotate(-12 13 13)"
+    />
+    <rect
+      x="4"
+      y="4"
+      width="18"
+      height="18"
+      rx="2"
+      stroke="currentColor"
+      stroke-width="1.8"
+      opacity="0.5"
+      transform="rotate(-6 13 13)"
+    />
+    <rect
+      x="4"
+      y="4"
+      width="18"
+      height="18"
+      rx="2"
+      stroke="currentColor"
+      stroke-width="1.8"
+    />
+    <circle cx="10" cy="10" r="2" fill="currentColor" />
+    <path
+      d="M4 19L10 12L15 17"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M12 16L16 12L22 18"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </g>
+</svg>
