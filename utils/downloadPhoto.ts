@@ -8,7 +8,8 @@ function forceDownload(blobUrl: string, filename: string) {
 }
 
 export default function downloadPhoto(url: string, filename: string) {
-  if (!filename) filename = url.split("\\").pop().split("/").pop();
+  if (!filename)
+    filename = url.split("\\").pop()?.split("/").pop() || `image-${Date.now()}`;
   fetch(url, {
     headers: new Headers({
       Origin: location.origin,
